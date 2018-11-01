@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>Hemodynamic Simulator</title>
+<style type="text/css">
+    .stimulator { width: 4em; }
+    #S1n { width: 2em; }
+    #no_html5 { margin: 0 auto; font-size: 20px }
+    .svtsim { font-variant: small-caps; }
+    #header {
+        background-color: #DDDDFF;
+        font-size: 18px;
+        padding: 10px;
+    }
+    .slider {
+        width: 100px;
+    }
+    .slider_label {
+        font-size: 10pt;
+        width: 150px;
+        height: 23px;
+    }
+    .measure {
+        width: 50px;
+        font-family: monospace;
+        font-size: 14pt;
+        background-color: white;
+    }
+</style>
+<!--[if lt IE 9]>
+<script type="text/javascript" src="flashcanvas.js"></script>
+<![endif]-->
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="http://code.jquery.com/ui/1.12.1/juqery.ui.touch-punch.min.js"></script>
+</head>
+<body>
+<h1>Cardiac Hemodynamic Simulator (<span class="svtsim" id="title">hemosim</span>)</h1>
+
+<div id="warning" style="width:800px; border:2px solid black; display:none;margin:10px;">
+<b>Warning!</b> You are running <span class="svtsim">hemosim lite</span> with restricted functionality of
+<span class="svtsim">svtsim</span> for older Internet Explorer browsers (version 8 and older). Please upgrade to a modern browser!
+</div>
+
+<div style="padding:10px; display:none;">
+    <span style="font-size:18px;"><b>Mode: <span id="mode_name">basic</span></b>&nbsp;</span>
+    <input value="Switch to Hemodynamic Mode" class="redirect" name="hemo" type="button" style="font-size:18px; background-color:#88AAFF; color:#FFFFFF">
+</div>
+
+<table id="main_table" bgcolor="#DDDDDD" border="1">
+<tbody><tr><td valign="top">
+    <table border="1" width="250">
+        <tbody>
+            <tr><td>
+                <table bgcolor="#DDCCCC" width="100%">
+                    <tbody><tr><td align="center" bgcolor="#FFAAAA">Rhythm</td></tr>
+                    <tr><td>
+                        <select id="scenario" readonly=""></select>
+                    </td></tr>
+                </tbody></table>
+            </td></tr>
+            <tr><td>
+                <div align="center" style="background-color: #CCFFCC;">Parameters</div>
+                <table bgcolor="#DDDDBB">
+                    <tbody>
+                    <tr>
+                        <input value="Steady State" id="steady_state" type="button" style="margin: 5px;"></input>
+                        <input value="Compensate" id="compensate" type="button" style="margin: 5px;"></input>
+                        <br>
+                        <input value="Reset" id="reset" type="button" style="margin: 5px;"></input>
+                    </tr>
+                    <tr>
+                    <td></td><td><img src="slider.png"></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">LV Contractility</td>
+                        <td><div class="slider" id="lv_con"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">RV Contractility</td>
+                        <td><div class="slider" id="rv_con"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Volume</td>
+                        <td><div class="slider" id="vol"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">LV Stiffness</td>
+                        <td><div class="slider" id="lv_tau"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">RV Stiffness</td>
+                        <td><div class="slider" id="rv_tau"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Aortic Stenosis</td>
+                        <td><div class="slider" id="av_s"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Aortic Regurg.</td>
+                        <td><div class="slider" id="av_r"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">LVOT gradient</td>
+                        <td><div class="slider" id="dyn"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Mitral Stenosis</td>
+                        <td><div class="slider" id="mt_s"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Mitral Regurg.</td>
+                        <td><div class="slider" id="mt_r"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Pulm Stenosis</td>
+                        <td><div class="slider" id="pv_s"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Pulm Regurg.</td>
+                        <td><div class="slider" id="pv_r"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Tricusp Stenosis</td>
+                        <td><div class="slider" id="tc_s"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Tricusp Regurg.</td>
+                        <td><div class="slider" id="tc_r"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">SVR</td>
+                        <td><div class="slider" id="sys_r"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">PVR</td>
+                        <td><div class="slider" id="pul_r"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">Effusion</td>
+                        <td><div class="slider" id="peri"></div></td>
+                    </tr>
+                    <tr>
+                        <td class="slider_label">ASD</td>
+                        <td><div class="slider" id="asd"></div></td>
+                    </tr>
+                </tbody></table>
+            </td></tr>
+            <tr><td style="font: 14px ariel;">
+                    <i>Hint:</i> Modify the parameters by moving the sliders.
+            </td></tr>
+    </tbody></table>
+    </td>
+    <td>
+        <div style="width: 800 px; height: 160px;">
+            <div style="border: 1px solid black; margin: 2px; float: left; width: 500px; height: 150px;">
+                <table><tbody>
+                    <tr>
+                        <td>AO</td><td><div class="measure" id="m_ao" style="width: 80px;">0</div></td>
+                        <td>LVEDV</td><td><div class="measure" id="m_lvedv">0</div></td>
+                        <td>LVESV</td><td><div class="measure" id="m_lvesv">0</div></td>
+                        <td>LVEF</td><td><div class="measure" id="m_lvef">0</div></td>
+                    </tr>
+                    <tr>
+                        <td>PA</td><td><div class="measure" id="m_pa" style="width: 80px;"">0</div></td>
+                        <td>RVEDV</td><td><div class="measure" id="m_rvedv">0</div></td>
+                        <td>RVESV</td><td><div class="measure" id="m_rvesv">0</div></td>
+                        <td>RVEF</td><td><div class="measure" id="m_rvef">0</div></td>
+                    </tr>
+                    <tr>
+                        <td>LVEDP</td><td><div class="measure" id="m_lvedp">0</div></td>
+                        <td>Qs</td><td><div class="measure" id="m_qs">0</div></td>
+                        <td>PCWP</td><td><div class="measure" id="m_pcwp">0</div></td>
+                    </tr>
+                    <tr>
+                        <td>RVEDP</td><td><div class="measure" id="m_rvedp">0</div></td>
+                        <td>Qp</td><td><div class="measure" id="m_qp">0</div></td>
+                        <td>CVP</td><td><div class="measure" id="m_cvp">0</div></td>
+                    </tr>
+                </tbody></table>
+            </div>
+            <div style="float: right; width: 280px; height: 150px; border: 1px solid black;">
+                <div style="width: 60px; float: left;">
+                    <input value="LV" id="loop_lv" type="button"></input>
+                    <input value="RV" id="loop_rv" type="button"></input>
+                    <input value="Clear" id="clear" type="button"></input>
+                </div>
+                <div>
+                    <canvas id="c2" width="200" height="145"></canvas>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div id="c0_container" style="width: 800px;">
+                <div id="c0" style="width: 50px; height:500px; background-color: black; float: left;"></div>
+                <canvas id="c1" width="750" height="500"></canvas>
+            </div>
+            <table width="100%">
+            <tbody><tr>
+                <td>
+                    <input value="Pause" id="pause" type="button">
+                </td>
+                <td style="display: none">
+                    <input id="align" checked="checked" type="checkbox">Auto-align
+                </td>
+                <td>
+                    <select id="intervals" readonly="" disabled="true">
+                        <option>Select Interval</option>
+                        <option>PP</option>
+                        <option>RR</option>
+                        <option>PR</option>
+                        <option>AH</option>
+                        <option>HV</option>
+                        <option>VA</option>
+                    </select>
+                </td>
+                <td style="text-align: right;">
+                    Refresh Rate (Hz):
+                    <select id="refresh" readonly="">
+                        <option>5</option>
+                        <option>10</option>
+                        <option>20</option>
+                        <option selected="selected">40</option>
+                    </select>
+                    Sweep Speed:
+                    <select id="speed" readonly="">
+                        <option selected="selected">100</option>
+                        <option>200</option>
+                        <option>400</option>
+                    </select>
+                    <input value="Gray/Color" id="color" type="button">
+                </td>
+            </tr></tbody></table>
+        </div>
+    </td>
+</tr>
+</tbody></table>
+<hr>
+<div id="header" style="font-size: small; width: 960px;">
+<p><span class="svtsim">hemosim</span> is a web-based cardiac hemodynamic simulator, which is primarily designed for training and education. Its target audience includes medical students, internal medicine and cardiology fellows-in-training and cath lab nurses and technicians. <span class="svtsim">hemosim</span> provides an environment that allows users to interactively modify cardiac hemodynamic parameters, such as the degree of valvular stenosis and regurgitation, and to observe the effect on simulated intracardiac pressure tracings.
+</p>
+
+<p><span class="svtsim">hemosim</span> is built on top of the <a href="svtsim_doc.html" target="_blank"><span class="svtsim">svtsim</span></a> platform, which is an interactive cardiac electrophysiology simulator. The core hemodynamic model in <span class="svtsim">hemosim</span> is a modified <a href="http://www.ncbi.nlm.nih.gov/pubmed/15036180">Smith-Chase-Nokes-Shaw-Wake</a> lumped-parameter model.
+</p>
+
+</div>
+<footer>
+<hr>
+<div style="position: relative; width: 960px;">
+©2011-2018 Shahriar Iravanian (<a href="mail://siravan@svtsim.com">siravan@svtsim.com</a>). This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
+<br>
+<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a>
+</div>
+
+<script type="text/javascript" src="hemosim-2.0.js"></script>
+<script type="text/javascript" src="modeler-3.3-min.js"></script>
+
+</body></html>
